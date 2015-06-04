@@ -3,6 +3,7 @@
 namespace dlds\authme;
 
 use Yii;
+use dlds\authme\components\AuthMeToken;
 
 class AuthMe extends \yii\base\Component {
 
@@ -11,6 +12,10 @@ class AuthMe extends \yii\base\Component {
      */
     public $secret;
 
+    /**
+     * Authenticate user by given token and log him in
+     * @param string $token
+     */
     public function loginByAccessToken($token)
     {
         $identity = $this->getIdentity($token);
@@ -21,18 +26,41 @@ class AuthMe extends \yii\base\Component {
         }
     }
 
-    public static function getIdentity($token)
+    /**
+     * Retreives identity based on given token
+     * - parses given token and find appropriate identity
+     * - validate if timestamp in token is valid
+     * @param string $string
+     * @return interfaces\AuthMeIdentityInterface identity
+     */
+    public function getIdentity($string)
     {
-        return Yii::$app->getSecurity()->encryptByPassword(self::getTokenContent($user));
+        $token = AuthMeToken::initFromString($string, $this->secret);
+
+        if ($token && !$token->isExpired())
+        {
+            $identityClass = \Yii::$app->user->identityClass;
+
+            $identity = $identityClass::findOne($token->getPrimaryKey());
+
+            if ($identity && $token->isValid($identity->getSecondaryKey()))
+            {
+                return $identity;
+            }
+        }
+
+        return false;
     }
 
-    public static function getToken($user)
+    /**
+     * Retrieves authorization token for given identity
+     * @param AuthMeIdentityInterface $user
+     * @return string authorization token
+     */
+    public function getToken(interfaces\AuthMeIdentityInterface $identity)
     {
-        Yii::$app->getSecurity()->encryptByPassword(self::getTokenContent($user));
-    }
+        $token = AuthMeToken::initFromIdentity($identity);
 
-    private static function getTokenContent($user)
-    {
-        return sprintf('%s-%s-%s', $user->primaryKey, $user->auth_key, time());
+        return $token->asString($this->secret);
     }
 }
