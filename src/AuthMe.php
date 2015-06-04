@@ -1,13 +1,10 @@
 <?php
 
-namespace dlds\shareit;
+namespace dlds\authme;
 
 use Yii;
-use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-use dlds\shareit\ShareItAssets;
 
-class AuthMe extends \yii\base\Widget {
+class AuthMe extends \yii\base\Component {
 
     /**
      * @var string secret key for encrypting/decrypting tokens
@@ -16,7 +13,7 @@ class AuthMe extends \yii\base\Widget {
 
     public function loginByAccessToken($token)
     {
-        $identity = AccessTokenHelper::getIdentity($token);
+        $identity = $this->getIdentity($token);
 
         if ($identity)
         {
@@ -24,7 +21,12 @@ class AuthMe extends \yii\base\Widget {
         }
     }
 
-    public static function getToken(UsrIdentity $user)
+    public static function getIdentity($token)
+    {
+        return Yii::$app->getSecurity()->encryptByPassword(self::getTokenContent($user));
+    }
+
+    public static function getToken($user)
     {
         Yii::$app->getSecurity()->encryptByPassword(self::getTokenContent($user));
     }
