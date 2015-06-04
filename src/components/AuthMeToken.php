@@ -10,7 +10,7 @@ class AuthMeToken {
     /**
      * Hash template
      */
-    const HASH_TEMPLATE = '%s-%s-%s';
+    const TOKEN_TEMPLATE = '%s-%s-%s';
 
     /**
      * @var int expiry time
@@ -71,7 +71,7 @@ class AuthMeToken {
      */
     public function asString($secret)
     {
-        $source = sprintf(self::HASH_TEMPLATE, $this->_primaryKey, $this->_secondaryKey, $this->_timestamp);
+        $source = sprintf(self::TOKEN_TEMPLATE, $this->_primaryKey, $this->_secondaryKey, $this->_timestamp);
 
         return $this->_encrypt($source, $secret);
     }
@@ -116,11 +116,9 @@ class AuthMeToken {
     {
         $decrypted = self::_decrypt($string, $secret);
 
-        $parts = explode('-', $decrypted);
-
-        if (count($parts) == 3)
+        if (preg_match('/^(\d+)\-(.*)\-(\d+)$/', $decrypted, $matches))
         {
-            return new self($parts[0], $parts[1], $parts[2]);
+            return new self($matches[1], $matches[2], $matches[3]);
         }
 
         return null;
