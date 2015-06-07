@@ -13,6 +13,11 @@ class AuthMe extends \yii\base\Component {
     public $secret;
 
     /**
+     * @var int token expiration time
+     */
+    public $tokenExpiry;
+
+    /**
      * Authenticate user by given token and log him in
      * @param string $token
      */
@@ -35,8 +40,10 @@ class AuthMe extends \yii\base\Component {
      */
     public function getIdentity($string)
     {
-        $token = AuthMeToken::initFromString($string, $this->secret);
+        $token = AuthMeToken::initFromString($string, $this->secret, $this->tokenExpiry);
 
+        var_dump($token);
+        die();
         if ($token && !$token->isExpired())
         {
             $identityClass = \Yii::$app->user->identityClass;

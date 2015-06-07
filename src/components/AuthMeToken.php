@@ -15,7 +15,7 @@ class AuthMeToken {
     /**
      * @var int expiry time
      */
-    public $expiry = 86400;
+    protected $expiry = 86400;
 
     /**
      * @var string primary key held in token
@@ -39,11 +39,16 @@ class AuthMeToken {
      * @param string $secondaryKey
      * @param string $timestamp
      */
-    private function __construct($primaryKey, $secondaryKey, $timestamp)
+    private function __construct($primaryKey, $secondaryKey, $timestamp, $expiry = false)
     {
         $this->_primaryKey = $primaryKey;
         $this->_secondaryKey = $secondaryKey;
         $this->_timestamp = $timestamp;
+
+        if (false !== $expiry)
+        {
+            $this->expiry = $expiry;
+        }
     }
 
     /**
@@ -112,13 +117,13 @@ class AuthMeToken {
      * @param string $hash
      * @return AuthMeToken new instance
      */
-    public static function initFromString($string, $secret)
+    public static function initFromString($string, $secret, $expiry = false)
     {
         $decrypted = self::_decrypt($string, $secret);
 
         if (preg_match('/^(\d+)\-(.*)\-(\d+)$/', $decrypted, $matches))
         {
-            return new self($matches[1], $matches[2], $matches[3]);
+            return new self($matches[1], $matches[2], $matches[3], $expiry);
         }
 
         return null;
