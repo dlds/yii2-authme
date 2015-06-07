@@ -42,8 +42,6 @@ class AuthMe extends \yii\base\Component {
     {
         $token = AuthMeToken::initFromString($string, $this->secret, $this->tokenExpiry);
 
-        var_dump($token);
-        die();
         if ($token && !$token->isExpired())
         {
             $identityClass = \Yii::$app->user->identityClass;
