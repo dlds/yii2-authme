@@ -5,7 +5,8 @@ namespace dlds\authme;
 use Yii;
 use dlds\authme\components\AuthMeToken;
 
-class AuthMe extends \yii\base\Component {
+class AuthMe extends \yii\base\Component
+{
 
     /**
      * @var string secret key for encrypting/decrypting tokens
@@ -17,6 +18,13 @@ class AuthMe extends \yii\base\Component {
      */
     public $tokenExpiry;
 
+    public function init()
+    {
+        if (strlen($this->secret) < 16) {
+            throw new \yii\base\InvalidConfigException('Secret must contains min 16 chars');
+        }
+    }
+
     /**
      * Authenticate user by given token and log him in
      * @param string $token
@@ -25,8 +33,7 @@ class AuthMe extends \yii\base\Component {
     {
         $identity = $this->getIdentity($token);
 
-        if ($identity)
-        {
+        if ($identity) {
             \Yii::$app->user->login($identity);
         }
     }
@@ -42,14 +49,12 @@ class AuthMe extends \yii\base\Component {
     {
         $token = AuthMeToken::initFromString($string, $this->secret, $this->tokenExpiry);
 
-        if ($token && !$token->isExpired())
-        {
+        if ($token && !$token->isExpired()) {
             $identityClass = \Yii::$app->user->identityClass;
 
             $identity = $identityClass::findOne($token->getPrimaryKey());
 
-            if ($identity && $token->isValid($identity->getSecondaryKey()))
-            {
+            if ($identity && $token->isValid($identity->getSecondaryKey())) {
                 return $identity;
             }
         }
@@ -68,4 +73,5 @@ class AuthMe extends \yii\base\Component {
 
         return $token->asString($this->secret);
     }
+
 }

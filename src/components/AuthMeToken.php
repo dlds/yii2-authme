@@ -5,7 +5,8 @@ namespace dlds\authme\components;
 use dlds\authme\interfaces\AuthMeIdentityInterface;
 use dlds\authme\generators\HashidGenerator;
 
-class AuthMeToken {
+class AuthMeToken
+{
 
     /**
      * Hash template
@@ -45,8 +46,7 @@ class AuthMeToken {
         $this->_secondaryKey = $secondaryKey;
         $this->_timestamp = $timestamp;
 
-        if (false !== $expiry)
-        {
+        if (false !== $expiry) {
             $this->expiry = $expiry;
         }
     }
@@ -104,8 +104,7 @@ class AuthMeToken {
      */
     public static function initFromIdentity(AuthMeIdentityInterface $identity, $time = false)
     {
-        if (false === $time)
-        {
+        if (false === $time) {
             $time = time();
         }
 
@@ -120,9 +119,8 @@ class AuthMeToken {
     public static function initFromString($string, $secret, $expiry = false)
     {
         $decrypted = self::_decrypt($string, $secret);
-
-        if (preg_match('/^(\d+)\-(.*)\-(\d+)$/', $decrypted, $matches))
-        {
+        
+        if (preg_match('/^(\d+)\-(.*)\-(\d+)$/', $decrypted, $matches)) {
             return new self($matches[1], $matches[2], $matches[3], $expiry);
         }
 
@@ -137,7 +135,7 @@ class AuthMeToken {
      */
     private static function _encrypt($text, $secret)
     {
-        return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $secret, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))));
+        return openssl_encrypt($text, 'AES-128-CBC', $secret, OPENSSL_RAW_DATA, substr($secret, 0, 16));
     }
 
     /**
@@ -148,7 +146,7 @@ class AuthMeToken {
      */
     private static function _decrypt($text, $secret)
     {
-        // Decrypt $string
-        return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $secret, base64_decode($text), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND)));
+        return openssl_decrypt($text, 'AES-128-CBC', $secret, OPENSSL_RAW_DATA, substr($secret, 0, 16));
     }
+
 }
